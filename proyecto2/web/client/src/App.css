@@ -1,0 +1,235 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800&family=JetBrains+Mono:wght@500&display=swap');
+
+:root {
+  --bg-deep: #0a0a0a;
+  --bg-card: #141414;
+  --bg-nav: #000000;
+  --text-main: #ffffff;
+  --text-dim: #b0b0b0;
+  --primary: #ffffff;
+  --btn-success: #4caf50;
+  --danger: #f44336;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body, html {
+  margin: 0;
+  padding: 0;
+  min-height: 100%;
+  font-family: 'Inter', sans-serif;
+  background-color: var(--bg-deep);
+  color: var(--text-main);
+}
+
+.app-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+/* Navbar */
+.navbar {
+  height: 64px;
+  background-color: var(--bg-nav);
+  padding: 0 2rem;
+  display: flex;
+  flex-direction: row; /* Fuerza horizontal */
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #222;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  flex-wrap: nowrap; /* Evita que se rompa en varias líneas */
+  min-width: 1000px; /* Asegura que no se colapse en pantallas muy pequeñas */
+}
+
+.nav-left {
+  display: flex;
+  align-items: center;
+  gap: 2.5rem;
+  flex-shrink: 0;
+}
+
+.logo {
+  font-size: 1.2rem;
+  margin: 0;
+  color: var(--primary);
+  font-weight: 800;
+  letter-spacing: 1px;
+  white-space: nowrap;
+}
+
+.nav-controls {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.nav-right {
+  display: flex;
+  gap: 0.75rem;
+  flex-shrink: 0;
+}
+
+/* Grid Race */
+.grid-race {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: auto;
+  gap: 20px;
+  padding: 20px;
+  flex-grow: 1;
+}
+
+.quadrant {
+  background: var(--bg-card);
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+  border: 1px solid #222;
+  min-height: 480px;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.quadrant.is-complete {
+  border-color: var(--btn-success);
+  box-shadow: 0 0 30px rgba(76, 175, 80, 0.15);
+}
+
+.quad-header {
+  padding: 14px 20px;
+  border-bottom: 1px solid #222;
+  background: rgba(255,255,255,0.02);
+}
+
+.quad-header span {
+  font-weight: 800;
+  font-size: 0.9rem;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+}
+
+.quad-content-row {
+  display: flex;
+  flex-grow: 1;
+  width: 100%;
+  height: 100%;
+  padding: 12px;
+  gap: 15px;
+}
+
+.canvas-container {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: #000;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+canvas {
+  max-width: 100%;
+  max-height: 100%;
+  image-rendering: pixelated;
+}
+
+.metrics-sidebar {
+  width: 160px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding: 15px;
+  background: rgba(0,0,0,0.3);
+  border-radius: 8px;
+  justify-content: center;
+}
+
+.metric-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.metric-group label {
+  font-size: 0.6rem;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+}
+
+.metric-group span {
+  font-size: 1rem;
+  font-weight: bold;
+  font-family: 'JetBrains Mono', monospace;
+  color: #fff;
+}
+
+.is-complete .metric-group span {
+  color: var(--btn-success);
+}
+
+/* UI Elements */
+.input-group { display: flex; align-items: center; gap: 0.75rem; }
+input[type="file"] { display: none; }
+
+.custom-file-upload { 
+  background: #1a1a1a; 
+  padding: 0.5rem 1rem; 
+  border-radius: 6px; 
+  cursor: pointer; 
+  font-size: 0.75rem; 
+  border: 1px solid #333;
+  font-weight: 700;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.custom-file-upload:hover {
+  background: #252525;
+  border-color: #555;
+}
+
+select { 
+  background: #1a1a1a; 
+  color: white; 
+  border: 1px solid #333; 
+  padding: 0.45rem 0.75rem; 
+  border-radius: 6px; 
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  outline: none;
+}
+
+button { 
+  padding: 0.6rem 1.25rem; 
+  border-radius: 6px; 
+  font-weight: 800; 
+  cursor: pointer; 
+  border: none; 
+  font-size: 0.75rem;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.btn-start { background-color: var(--btn-success); color: #000; }
+.btn-start:hover { background-color: #66bb6a; transform: translateY(-1px); }
+.btn-start:active { transform: translateY(0); }
+
+.btn-restart { 
+  background-color: transparent; 
+  color: var(--text-dim); 
+  border: 1px solid #333; 
+}
+.btn-restart:hover {
+  border-color: #555;
+  color: #fff;
+}

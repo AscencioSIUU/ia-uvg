@@ -2,17 +2,29 @@
 
 Este proyecto es un sistema avanzado de resolución de laberintos de 128x128 píxeles utilizando algoritmos de búsqueda informada y no informada. Incluye una interfaz gráfica interactiva (GUI) y un motor de simulación para comparación de métricas.
 
-## 🚀 Características
+## 🚀 Versión Web (Nueva)
 
-- **Algoritmos implementados:** BFS, DFS, Greedy Best-First Search y A*.
-- **Heurísticas:** Distancia Manhattan y Euclidiana.
-- **Visualización:** Interfaz en tiempo real usando Pygame (128x128 grid).
-- **Métricas:** Longitud del camino, nodos explorados, tiempo de ejecución y factor de ramificación.
-- **Simulación:** Ejecución automatizada con múltiples puntos de inicio aleatorios.
+La versión web permite comparar los 4 algoritmos en tiempo real en una cuadrícula de 2x2.
+
+### Cómo Correr la Versión Web
+
+1. **Iniciar Backend (FastAPI):**
+   ```bash
+   export PYTHONPATH=$PYTHONPATH:.
+   python3 web/api.py
+   ```
+
+2. **Iniciar Frontend (React):**
+   ```bash
+   cd web/client
+   npm install
+   npm run dev
+   ```
+   Abre [http://localhost:5173](http://localhost:5173) en tu navegador.
 
 ---
 
-## 🛠️ Instalación
+## 🛠️ Instalación (Versión Original Desktop)
 
 ### 1. Requisitos Previos
 Asegúrate de tener Python 3.8 o superior instalado.
@@ -22,22 +34,22 @@ Asegúrate de tener Python 3.8 o superior instalado.
 #### 🍎 macOS / 🐧 Linux
 Abre una terminal y ejecuta:
 ```bash
-pip install pygame
+pip install pygame fastapi uvicorn websockets
 ```
 
 #### 🪟 Windows
 Abre el Command Prompt (CMD) o PowerShell y ejecuta:
 ```bash
-pip install pygame
+pip install pygame fastapi uvicorn websockets
 ```
 
 ---
 
-## 🏃 Cómo Correr el Proyecto
+## 🏃 Cómo Correr el Proyecto (Desktop)
 
 Es fundamental estar en la raíz de la carpeta `proyecto2` para ejecutar los comandos.
 
-### 🎨 Interfaz Gráfica (GUI)
+### 🎨 Interfaz Gráfica (GUI Pygame)
 La GUI permite seleccionar algoritmos y ver la exploración en tiempo real.
 
 **macOS / Linux:**
@@ -64,7 +76,7 @@ python ui/app.py
 
 ---
 
-### 📊 Simulación de Métricas
+### 📊 Simulación de Métricas (Consola)
 Ejecuta todos los algoritmos 10 veces con puntos de inicio aleatorios y genera un reporte comparativo.
 
 **macOS / Linux:**
@@ -83,12 +95,12 @@ python utils/simulator.py
 
 ## 🏗️ Arquitectura del Proyecto
 
+- `/web`: Backend API y Cliente React.
 - `/core`: Clases base (`Node`, `Maze`).
 - `/algorithms`: Implementaciones de búsqueda (BFS, DFS, Greedy, A*).
 - `/heuristics`: Funciones de distancia.
 - `/ui`: Interfaz gráfica con Pygame.
 - `/utils`: Cargador de mapas, generador de pruebas y simulador.
-- `/tasks`: Seguimiento del desarrollo.
 
 ---
 
