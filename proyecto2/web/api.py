@@ -21,27 +21,34 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+BATCH_SIZE = 50  # Pasos por batch antes de ceder control al event loop
+
 async def run_algo_generator(algo_name, generator, websocket):
     """
-    Wraps an algorithm generator and sends steps via WebSocket.
+    Wraps an algorithm generator and sends steps via WebSocket in batches.
     """
     try:
+        batch = []
         for step, is_final in generator:
             if isinstance(step, dict): # Metrics
+                # Flush batch antes de enviar métricas
+                if batch:
+                    await websocket.send_json({"type": "batch", "algo": algo_name, "steps": batch})
+                    batch = []
                 await websocket.send_json({
                     "type": "metrics",
                     "algo": algo_name,
                     "data": step
                 })
             else: # Node
-                await websocket.send_json({
-                    "type": "step",
-                    "algo": algo_name,
-                    "pos": step.position,
-                    "is_final": is_final
-                })
-            # Delay para animación observable (10ms por paso)
-            await asyncio.sleep(1)
+                batch.append({"pos": step.position, "is_final": is_final})
+                if len(batch) >= BATCH_SIZE:
+                    await websocket.send_json({"type": "batch", "algo": algo_name, "steps": batch})
+                    batch = []
+                    await asyncio.sleep(0)  # Cede control sin bloquear
+        # Flush batch final
+        if batch:
+            await websocket.send_json({"type": "batch", "algo": algo_name, "steps": batch})
     except Exception as e:
         print(f"Error in {algo_name}: {e}")
 

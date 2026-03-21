@@ -3,30 +3,32 @@ import Navbar from './Navbar';
 import './App.css';
 
 const ALGOS = ["BFS", "DFS", "Greedy", "A*"];
-const MAZE_SIZE = 128;
-const ANIMATION_SPEED = 2; // Cantidad de pasos por frame (ajusta para más lento/rápido)
+const ANIMATION_SPEED = 5; // Pasos por frame — menor = más lento y visible
 
-const Quadrant = forwardRef(({ algo, maze }, ref) => {
+const RANK_LABELS = ['1°', '2°', '3°', '4°'];
+
+const Quadrant = forwardRef(({ algo, maze, rank, onComplete }, ref) => {
   const canvasRef = useRef(null);
   const containerRef = useRef(null);
   const [metrics, setMetrics] = useState(null);
   const [isComplete, setIsComplete] = useState(false);
-  
-  // Cola interna para la animación
+
   const stepQueue = useRef([]);
   const animationRef = useRef(null);
+  // Dimensiones de celda calculadas al dibujar el maze (para reusar en animación)
+  const cellDims = useRef({ cellW: 1, cellH: 1 });
 
   useImperativeHandle(ref, () => ({
     pushStep: (pos, isFinal) => {
       stepQueue.current.push({ pos, isFinal });
     },
     setMetrics: (data) => {
-      // Esperar a que la cola se vacíe antes de marcar como completo
       const checkDone = setInterval(() => {
         if (stepQueue.current.length === 0) {
           setMetrics(data);
           setIsComplete(true);
           clearInterval(checkDone);
+          onComplete?.();
         }
       }, 100);
     },
@@ -44,39 +46,33 @@ const Quadrant = forwardRef(({ algo, maze }, ref) => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
-    
+
     const animate = () => {
       if (stepQueue.current.length > 0) {
-        // Procesar N pasos por frame para fluidez
+        const { cellW, cellH } = cellDims.current;
         for (let i = 0; i < ANIMATION_SPEED; i++) {
           const step = stepQueue.current.shift();
           if (!step) break;
 
-          const cellSize = Math.min(canvas.width, canvas.height) / MAZE_SIZE;
-          const offsetX = (canvas.width - (MAZE_SIZE * cellSize)) / 2;
-          const offsetY = (canvas.height - (MAZE_SIZE * cellSize)) / 2;
-
           if (step.isFinal) {
             ctx.fillStyle = '#ffeb3b';
-            ctx.shadowBlur = 5;
+            ctx.shadowBlur = 4;
             ctx.shadowColor = '#ffeb3b';
           } else {
-            ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
             ctx.shadowBlur = 0;
+            ctx.fillStyle = 'rgba(255,255,255,0.45)';
           }
-          
-          ctx.fillRect(offsetX + step.pos[1] * cellSize, offsetY + step.pos[0] * cellSize, cellSize, cellSize);
-          
-          // Resaltar el "cabezal" de la decisión actual en blanco brillante
+          ctx.fillRect(step.pos[1] * cellW, step.pos[0] * cellH, cellW, cellH);
+
           if (!step.isFinal) {
             ctx.fillStyle = '#fff';
-            ctx.fillRect(offsetX + step.pos[1] * cellSize, offsetY + step.pos[0] * cellSize, cellSize, cellSize);
+            ctx.fillRect(step.pos[1] * cellW, step.pos[0] * cellH, cellW, cellH);
           }
         }
       }
       animationRef.current = requestAnimationFrame(animate);
     };
-    
+
     animate();
   };
 
@@ -84,28 +80,31 @@ const Quadrant = forwardRef(({ algo, maze }, ref) => {
     const canvas = canvasRef.current;
     const container = containerRef.current;
     if (!canvas || !container) return;
-    
+
     canvas.width = container.clientWidth;
     canvas.height = container.clientHeight;
     const ctx = canvas.getContext('2d');
-    
+
     ctx.fillStyle = '#000';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     if (!maze) return;
 
-    const cellSize = Math.min(canvas.width, canvas.height) / MAZE_SIZE;
-    const offsetX = (canvas.width - (MAZE_SIZE * cellSize)) / 2;
-    const offsetY = (canvas.height - (MAZE_SIZE * cellSize)) / 2;
+    // Calcular celdas para que el maze llene todo el canvas
+    const rows = maze.length;
+    const cols = maze[0].length;
+    const cellW = canvas.width / cols;
+    const cellH = canvas.height / rows;
+    cellDims.current = { cellW, cellH };
 
-    for (let r = 0; r < maze.length; r++) {
-      for (let c = 0; c < maze[0].length; c++) {
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
         const val = maze[r][c];
         if (val === 1) ctx.fillStyle = '#000';
         else if (val === 2) ctx.fillStyle = '#4caf50';
         else if (val === 3) ctx.fillStyle = '#f44336';
         else ctx.fillStyle = '#111';
-        ctx.fillRect(offsetX + c * cellSize, offsetY + r * cellSize, cellSize, cellSize);
+        ctx.fillRect(c * cellW, r * cellH, cellW, cellH);
       }
     }
   };
@@ -121,30 +120,33 @@ const Quadrant = forwardRef(({ algo, maze }, ref) => {
   }, [maze]);
 
   return (
-    <div className={`quadrant ${isComplete ? 'is-complete' : ''}`} ref={containerRef}>
+    <div className={`quadrant ${isComplete ? 'is-complete' : ''}`}>
       <div className="quad-header">
-        <span>{algo}</span>
+        <span className="algo-name">{algo}</span>
+        {rank !== null && rank !== undefined && (
+          <span className="finish-rank">{RANK_LABELS[rank - 1]}</span>
+        )}
       </div>
       <div className="quad-content-row">
-        <div className="canvas-container">
+        <div className="canvas-container" ref={containerRef}>
           <canvas ref={canvasRef} />
         </div>
         <div className="metrics-sidebar">
           <div className="metric-group">
             <label>Nodos</label>
-            <span>{metrics?.nodes_explored || 0}</span>
+            <span>{metrics?.nodes_explored ?? '—'}</span>
           </div>
           <div className="metric-group">
             <label>Camino</label>
-            <span>{metrics?.path_length || 0}</span>
+            <span>{metrics?.path_length ?? '—'}</span>
           </div>
           <div className="metric-group">
             <label>Tiempo</label>
-            <span>{metrics?.execution_time?.toFixed(3) || "0.000"}s</span>
+            <span>{metrics?.execution_time != null ? metrics.execution_time.toFixed(3) + 's' : '—'}</span>
           </div>
           <div className="metric-group">
             <label>B Factor</label>
-            <span>{metrics?.branching_factor?.toFixed(2) || "0.00"}</span>
+            <span>{metrics?.branching_factor != null ? metrics.branching_factor.toFixed(2) : '—'}</span>
           </div>
         </div>
       </div>
@@ -157,7 +159,9 @@ function App() {
   const [heuristic, setHeuristic] = useState('Manhattan');
   const [socket, setSocket] = useState(null);
   const [isSolving, setIsSolving] = useState(false);
-  
+  const [finishOrder, setFinishOrder] = useState({});
+  const finishCounter = useRef(0);
+
   const quadRefs = {
     BFS: useRef(null),
     DFS: useRef(null),
@@ -165,11 +169,20 @@ function App() {
     "A*": useRef(null)
   };
 
+  const handleAlgoComplete = (algo) => {
+    finishCounter.current += 1;
+    const rank = finishCounter.current;
+    setFinishOrder(prev => ({ ...prev, [algo]: rank }));
+  };
+
   useEffect(() => {
     const ws = new WebSocket('ws://localhost:8000/solve');
     ws.onmessage = (event) => {
       const msg = JSON.parse(event.data);
-      if (msg.type === 'step') {
+      if (msg.type === 'batch') {
+        const ref = quadRefs[msg.algo]?.current;
+        if (ref) msg.steps.forEach(s => ref.pushStep(s.pos, s.is_final));
+      } else if (msg.type === 'step') {
         quadRefs[msg.algo]?.current?.pushStep(msg.pos, msg.is_final);
       } else if (msg.type === 'metrics') {
         quadRefs[msg.algo]?.current?.setMetrics(msg.data);
@@ -196,19 +209,23 @@ function App() {
 
   const handleStart = () => {
     if (!maze || !socket || isSolving) return;
+    finishCounter.current = 0;
+    setFinishOrder({});
     setIsSolving(true);
     ALGOS.forEach(algo => quadRefs[algo].current?.reset());
     socket.send(JSON.stringify({ maze, heuristic }));
   };
 
   const handleRestart = () => {
+    finishCounter.current = 0;
+    setFinishOrder({});
     setIsSolving(false);
     ALGOS.forEach(algo => quadRefs[algo].current?.reset());
   };
 
   return (
     <div className="app-container">
-      <Navbar 
+      <Navbar
         maze={maze}
         heuristic={heuristic}
         setHeuristic={setHeuristic}
@@ -220,11 +237,13 @@ function App() {
 
       <main className="grid-race">
         {ALGOS.map(algo => (
-          <Quadrant 
-            key={algo} 
+          <Quadrant
+            key={algo}
             ref={quadRefs[algo]}
-            algo={algo} 
+            algo={algo}
             maze={maze}
+            rank={finishOrder[algo] ?? null}
+            onComplete={() => handleAlgoComplete(algo)}
           />
         ))}
       </main>

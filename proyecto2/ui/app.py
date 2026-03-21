@@ -151,19 +151,22 @@ class MazeApp:
                         self.reset_state()
 
             if self.solving and self.current_generator:
-                try:
-                    res, is_final = next(self.current_generator)
-                    if isinstance(res, dict): # Metrics
-                        self.metrics = res
-                        self.solving = False
-                    else:
-                        node = res
-                        if is_final:
-                            self.final_path_cells.add(node.position)
+                for _ in range(100): # Process 100 steps per frame for speed
+                    try:
+                        res, is_final = next(self.current_generator)
+                        if isinstance(res, dict): # Metrics
+                            self.metrics = res
+                            self.solving = False
+                            break
                         else:
-                            self.exploring_cells.add(node.position)
-                except StopIteration:
-                    self.solving = False
+                            node = res
+                            if is_final:
+                                self.final_path_cells.add(node.position)
+                            else:
+                                self.exploring_cells.add(node.position)
+                    except StopIteration:
+                        self.solving = False
+                        break
 
             self.screen.fill((0,0,0))
             self.draw_maze()
