@@ -19,8 +19,13 @@ def astar(maze, start_pos, end_pos, heuristic_func):
     
     while pq:
         _, current_node = heapq.heappop(pq)
+
+        # Skip stale entries: a better path to this position was already processed
+        if current_node.g > g_score.get(current_node.position, float('inf')):
+            continue
+
         nodes_explored += 1
-        
+
         yield current_node, False
         
         if current_node.position == end_pos:
